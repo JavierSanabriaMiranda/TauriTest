@@ -76,6 +76,8 @@ resource "azurerm_linux_web_app" "webapp" {
     
     # Contraseña: Usamos la misma variable que le pasamos a la DB
     "DB_PASS" = var.db_password
+
+    "SPRING_MAIN_ALLOW-BEAN-DEFINITION-OVERRIDING" = "true"
   }
 }
 
