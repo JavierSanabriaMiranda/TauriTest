@@ -58,6 +58,11 @@ jobs:
       - name: Build JAR
         run: mvn clean package -DskipTests
 
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
