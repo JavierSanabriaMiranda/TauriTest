@@ -5,15 +5,12 @@ terraform {
       version = "~> 3.0"
     }
   }
-  # IMPORTANTE: Para GitHub Actions necesitas guardar el estado en la nube
-  # Tendrás que crear este Storage Account manualmente una vez o usar comandos CLI
   backend "azurerm" {
-    resource_group_name  = "rg-graphite-terraform-state"
-    storage_account_name = "test-terraform-jsm" # Cambia esto, debe ser único mundialmente
-    container_name       = "tfstate"
-    key                  = "prod.terraform.tfstate"
+    resource_group_name  = "rg-terraform-state"      
+    storage_account_name = "tfstatetestjavier"       
+    container_name       = "tfstate"                 
+    key                  = "prod.terraform.tfstate"  
   }
-}
 
 provider "azurerm" {
   features {}
