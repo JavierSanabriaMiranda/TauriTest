@@ -82,5 +82,5 @@ jobs:
       - name: Update Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'graphite-api-docker-jsm' # <--- ¡PON EL MISMO NOMBRE QUE EN MAIN.TF!
-          images: '${{ needs.infrastructure.outputs.acr_server }}/graphite-backend:latest'
+          app-name: 'terraform-docker-deploy-test-jsm' # <--- ¡PON EL MISMO NOMBRE QUE EN MAIN.TF!
+          images: '${{ needs.infrastructure.outputs.acr_server }}/testing-backend:latest'
