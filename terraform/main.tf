@@ -63,6 +63,19 @@ resource "azurerm_linux_web_app" "webapp" {
     # IMPORTANTE: Spring Boot escucha en 8080, pero Azure espera 80.
     # Esta variable le dice a Azure dónde buscar.
     "WEBSITES_PORT" = "8080" 
+    
+    # URL del servidor: usamos el FQDN (Fully Qualified Domain Name) que genera Azure
+    "DB_HOST" = azurerm_postgresql_flexible_server.postgres.fqdn
+    
+    # Nombre de la base de datos: 
+    # Por defecto Azure crea una llamada "postgres". Úsala para el test inicial.
+    "DB_NAME" = "postgres" 
+    
+    # Usuario: Lo cogemos directamente del recurso de arriba
+    "DB_USER" = azurerm_postgresql_flexible_server.postgres.administrator_login
+    
+    # Contraseña: Usamos la misma variable que le pasamos a la DB
+    "DB_PASS" = var.db_password
   }
 }
 

@@ -5,34 +5,57 @@ import "./App.css";
 function App() {
   const [inputText, setInputText] = useState("");
   const [responseText, setResponseText] = useState("");
-  
-  // Estado para controlar el modo oscuro
-  // (true = oscuro, false = claro)
+  const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  async function enviarARust() {
-    const resultado = await invoke("procesar_texto", { texto: inputText });
-    setResponseText(resultado);
+  // --- FUNCIÓN PARA AZURE (NUEVA) ---
+  async function enviarAAzure() {
+    if (!inputText) return;
+    
+    setLoading(true);
+    setResponseText("Enviando a Azure...");
+
+    try {
+      // SUSTITUYE esta URL por la que te dé Azure si cambiaste el nombre del App Service
+      const API_URL = "https://terraform-docker-deploy-test-jsm.azurewebsites.net/api/messages";
+      
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // Enviamos el texto directamente (Spring Boot lo recibirá como @RequestBody String)
+        body: JSON.stringify(inputText),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResponseText(`¡Guardado! ID en DB: ${data.id}`);
+      } else {
+        setResponseText(`Error: ${response.status} - No se pudo guardar`);
+      }
+    } catch (error) {
+      setResponseText("Error de conexión. ¿Está el API online?");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // Función para alternar el modo
+  // Tu función original de Rust
+  async function enviarARust() {
+    const resultado = await invoke("procesar_texto", { texto: inputText });
+    setResponseText(`Rust dice: ${resultado}`);
+  }
+
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
 
   return (
-    // CONTENEDOR PRINCIPAL DEL TEMA
-    // Si darkMode es true, añadimos la clase 'dark' al div padre.
-    // Esto activa todas las clases 'dark:...' en los hijos.
     <div className={darkMode ? "dark" : ""}>
-      
-      {/* FONDO DE PANTALLA */}
-      {/* min-h-screen: ocupa toda la altura */}
-      {/* bg-white dark:bg-gray-900: Blanco en claro, gris muy oscuro en oscuro */}
-      {/* text-gray-800 dark:text-gray-100: Texto oscuro en claro, texto claro en oscuro */}
       <div className="min-h-screen flex flex-col items-center justify-center p-8 transition-colors duration-300 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
         
-        {/* BOTÓN DE CAMBIO DE TEMA (Posicionado arriba a la derecha) */}
         <button
           onClick={toggleTheme}
           className="absolute top-5 right-5 p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
@@ -40,48 +63,51 @@ function App() {
           {darkMode ? "☀️ Modo Claro" : "🌙 Modo Oscuro"}
         </button>
 
-        {/* TÍTULO */}
-        {/* text-4xl: Texto muy grande */}
-        {/* font-bold: Negrita */}
-        {/* mb-10: Margen inferior grande */}
         <h1 className="text-4xl font-bold mb-10 tracking-tight">
-          🧪 Tauri-Lab
+          🧪 Tauri-to-Azure
         </h1>
         
-        {/* FILA DEL INPUT Y EL BOTÓN */}
-        {/* flex gap-4: Pone los elementos en fila con espacio entre ellos */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+        <div className="flex flex-col gap-4 w-full max-w-md">
           <input
             id="greet-input"
+            value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Escribe algo..."
-            // Clases del input: Bordes, redondeado, focus ring (anillo azul al clicar)
-            className="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            placeholder="Escribe un mensaje para la DB..."
+            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
-          <button 
-            type="button" 
-            onClick={enviarARust}
-            // Clases del botón: Color azul, texto blanco, sombra, efecto hover
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-transform transform active:scale-95"
-          >
-            Enviar a Rust
-          </button>
+          
+          <div className="flex gap-2">
+            <button 
+              type="button" 
+              onClick={enviarAAzure}
+              disabled={loading}
+              className={`flex-1 px-6 py-3 ${loading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} text-white font-semibold rounded-lg shadow-md transition-all transform active:scale-95`}
+            >
+              {loading ? "Cocinando..." : "Guardar en Azure"}
+            </button>
+
+            <button 
+              type="button" 
+              onClick={enviarARust}
+              className="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg shadow-md transition-all transform active:scale-95"
+            >
+              Local Rust
+            </button>
+          </div>
         </div>
 
-        {/* SECCIÓN DE RESPUESTA */}
         <div className="mt-12 text-center h-24">
           <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Respuesta del Backend:
+            Estado del Sistema:
           </h3>
-          {/* Si hay respuesta, la mostramos con estilo, si no, mostramos un guion */}
-          <p className="text-3xl font-extrabold text-blue-500 mt-2 break-all animate-pulse">
-            {responseText || "..."}
+          <p className={`text-2xl font-extrabold mt-2 break-all ${loading ? 'animate-pulse text-yellow-500' : 'text-blue-500'}`}>
+            {responseText || "Esperando acción..."}
           </p>
         </div>
         
-        {/* FOOTER */}
-        <p className="mt-16 text-sm text-gray-400 dark:text-gray-600">
-          Si ves una ventana nativa o logs en la terminal, Tauri funciona.
+        <p className="mt-16 text-sm text-gray-400 dark:text-gray-600 text-center">
+          Tauri enviará una petición HTTPS directa a tu App Service en North Europe.<br/>
+          Asegúrate de tener CORS habilitado en el Backend.
         </p>
       </div>
     </div>
