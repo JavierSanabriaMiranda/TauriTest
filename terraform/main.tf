@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "rg" {
 
 # 2. Azure Container Registry (Aquí se guardarán las imágenes Docker)
 resource "azurerm_container_registry" "acr" {
-  name                = "acr-test-jsm" # Debe ser único mundialmente (solo letras y números)
+  name                = "acrtestjsm" # Debe ser único mundialmente (solo letras y números)
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                 = "Basic"
