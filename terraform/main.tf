@@ -92,6 +92,13 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   
   # Importante para ahorrar costes en pruebas
   auto_grow_enabled = false 
+
+  lifecycle {
+    ignore_changes = [
+      zone,
+      high_availability[0].standby_availability_zone,
+    ]
+  }
 }
 
 # 6. Regla de Firewall para permitir acceso desde Azure
