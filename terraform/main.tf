@@ -60,23 +60,14 @@ resource "azurerm_linux_web_app" "webapp" {
   }
 
   app_settings = {
-    # IMPORTANTE: Spring Boot escucha en 8080, pero Azure espera 80.
-    # Esta variable le dice a Azure dónde buscar.
-    "WEBSITES_PORT" = "8080" 
+    "WEBSITES_PORT" = "8080"
     
-    # URL del servidor: usamos el FQDN (Fully Qualified Domain Name) que genera Azure
-    "DB_HOST" = azurerm_postgresql_flexible_server.postgres.fqdn
+    # Spring Boot detecta automáticamente estos nombres exactos:
+    "SPRING_DATASOURCE_URL"      = "jdbc:postgresql://${azurerm_postgresql_flexible_server.postgres.fqdn}:5432/postgres?sslmode=require"
+    "SPRING_DATASOURCE_USERNAME" = azurerm_postgresql_flexible_server.postgres.administrator_login
+    "SPRING_DATASOURCE_PASSWORD" = var.db_password
     
-    # Nombre de la base de datos: 
-    # Por defecto Azure crea una llamada "postgres". Úsala para el test inicial.
-    "DB_NAME" = "postgres" 
-    
-    # Usuario: Lo cogemos directamente del recurso de arriba
-    "DB_USER" = azurerm_postgresql_flexible_server.postgres.administrator_login
-    
-    # Contraseña: Usamos la misma variable que le pasamos a la DB
-    "DB_PASS" = var.db_password
-
+    # El fix que ya pusimos para el error de los beans
     "SPRING_MAIN_ALLOW-BEAN-DEFINITION-OVERRIDING" = "true"
   }
 }
