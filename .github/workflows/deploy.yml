@@ -1,0 +1,68 @@
+name: Deploy Backend on Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  infrastructure:
+    name: Provision Infrastructure (Terraform)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform # Ejecuta comandos en la carpeta terraform
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }} # Pasa el secreto a Terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+  build-and-deploy:
+    name: Build & Deploy Spring Boot
+    needs: infrastructure # Espera a que la infra esté lista
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend # Ejecuta comandos en la carpeta backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          # Debe coincidir con el nombre que pusiste en main.tf
+          app-name: 'terraform-api-deploy-test-jsm' 
+          package: 'backend/target/*.jar'
+          # Usamos las credenciales guardadas en secrets para autenticar el despliegue
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
