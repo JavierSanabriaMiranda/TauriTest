@@ -29,7 +29,7 @@ resource "azurerm_service_plan" "plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "F1" # B1 es barato. F1 (gratis) a veces falla con Java.
+  sku_name            = "B1" # B1 es barato. F1 (gratis) a veces falla con Java.
 }
 
 # 3. Web App (Java 17)
