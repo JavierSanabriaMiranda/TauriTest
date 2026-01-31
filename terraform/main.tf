@@ -20,7 +20,7 @@ provider "azurerm" {
 # 1. Grupo de Recursos
 resource "azurerm_resource_group" "rg" {
   name     = "rg-graphite-backend"
-  location = "West Europe"
+  location = "North Europe"
 }
 
 # 2. Plan de App Service (Linux Básico)
